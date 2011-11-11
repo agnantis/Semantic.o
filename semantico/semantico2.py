@@ -13,7 +13,7 @@ plugin.register(
     'sparql', rdflib.query.Result,
     'rdfextras.sparql.query', 'SPARQLQueryResult')
 
-UI_FILE = "data/main_window2.glade"
+UI_FILE = "semantico/data/main_window2.glade"
 
 class SemanticoApp:
     def __init__(self):
@@ -118,9 +118,12 @@ class SemanticoApp:
         treeview.append_column(Gtk.TreeViewColumn("Predicate", renderer, text=1))
         treeview.append_column(Gtk.TreeViewColumn("Object", renderer, text=2))  
         
-        tab = OutputTab(self.notebook, "All Data")
-        tab.add_context(treeview)
+        tab = OutputTab(self.notebook, "All Data", persistant=True)
+        tab.add_content(treeview)
         self.notebook.add_output(tab)
+        #add a + tab
+        tab = OutputTab(self.notebook, no_title=True, closable=False)
+        self.notebook.add_output(tab, get_focus=False, set_last=True)
         
         
     def populate_output_treeview(self, result):
@@ -142,9 +145,10 @@ class SemanticoApp:
         for index, name in enumerate(result.selectionF):
             treeview.append_column(Gtk.TreeViewColumn(name, renderer, text=index))  
         
-        tab = OutputTab(self.notebook)
-        tab.add_context(treeview)
-        self.notebook.add_output(tab)
+        #tab = OutputTab(self.notebook)
+        #tab.add_content(treeview)
+        #self.notebook.add_output(tab)
+        self.notebook.change_current_content(treeview) 
         
         
     def get_test_output_treeview(self):
