@@ -1,0 +1,15 @@
+<http://semprog.com/people/colin> <http://xmlns.com/foaf/0.1/name> "Colin Evans".
+<http://semprog.com/people/colin> <http://xmlns.com/foaf/0.1/mbox> <mailto:colin@metaweb.com>.
+<http://semprog.com/people/colin> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://xmlns.com/foaf/0.1/Person>.
+
+<http://semprog.com/people/colin> <http://xmlns.com/foaf/0.1/knows> _:jamie .
+<http://semprog.com/people/colin> <http://xmlns.com/foaf/0.1/knows> <http://kiwitobes.com/toby.rdf#ts>.
+
+<http://kiwitobes.com/toby.rdf#ts> <http://xmlns.com/foaf/0.1/name> "Toby Segaran".
+<http://kiwitobes.com/toby.rdf#ts> <http://xmlns.com/foaf/0.1/mbox> <mailto:toby@segaran.com>.
+<http://kiwitobes.com/toby.rdf#ts> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://xmlns.com/foaf/0.1/Person>.
+
+_:jamie <http://xmlns.com/foaf/0.1/name> "Jamie Taylor".
+_:jamie <http://xmlns.com/foaf/0.1/mbox> <mailto:jamie@semprog.com>.
+_:jamie <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://xmlns.com/foaf/0.1/Person>.
+

@@ -1,0 +1,4 @@
+select ?name ?mail ?o
+where { ?o <http://xmlns.com/foaf/0.1/name> ?name.
+		?o <http://xmlns.com/foaf/0.1/mbox> ?mail.
+}
