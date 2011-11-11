@@ -4,7 +4,7 @@ from gi.repository import Gtk, GObject
 import rdflib
 from rdflib.graph import Graph
 from rdflib import plugin
-from semantico.MyNotebookPage import MyNotebookPage
+from semantico.MyNotebookPage import MyNoteBook, OutputTab
 
 plugin.register(
     'sparql', rdflib.query.Processor,
@@ -25,10 +25,14 @@ class SemanticoApp:
         self.query_btn = self.builder.get_object('query_btn')  
         self.statusbar =  self.builder.get_object('statusbar')  
         self.outputscroll = self.builder.get_object('outputscroll')  
-        self.treeview = self.builder.get_object('treeview1')
+        #self.treeview = self.builder.get_object('treeview1')
         self.progress = self.builder.get_object('progressbar')
-        self.tab_widget = self.builder.get_object('notebook')
+        self.box = self.builder.get_object('outputbox')
         
+        self.notebook = MyNoteBook()
+        self.notebook.show_all()
+        self.box.pack_start(self.notebook, True, True, 0)
+                
         self.timeout_id = GObject.timeout_add(50, self.on_timeout, None)
         self.activity_mode = False
         
@@ -64,16 +68,11 @@ class SemanticoApp:
         self.graph.parse(filename, format="nt")
         self.status("File loaded successfully")   
         self.query_btn.set_sensitive(True)
+        self.populate_all_data()
         
     def on_clear_btn_clicked(self, button):
         pass
-    
-    def on_new_tab_btn_clicked(self, button):
-        myPage = MyNotebookPage(self.tab_widget)
-        position = self.tab_widget.append_page(myPage.get_page(), myPage.get_title())
-        myPage.set_position(position)
-        
-        
+          
     def on_query_btn_clicked(self, button):
         if not self.graph:
             self.status("No graph loaded")   
@@ -81,15 +80,13 @@ class SemanticoApp:
             self.status("Querying...") 
             query_str = self.get_query_text() 
             if not len(query_str):
-                for (s, p, o) in self.graph:
-                    self.append('%s\t%s\t%s\n' % (s, p, o))
-                self.status("Query answered")   
+                pass  
             else:
                 try:
                     print "Query:", query_str
                     self.activity_mode = True
                     results = self.graph.query(query_str)
-                    self.print_out_results(results)
+                    self.populate_output_treeview(results)
                     self.status("Results: %d" % len(results))
                     self.activity_mode = False 
                 except SyntaxError as er:
@@ -102,6 +99,29 @@ class SemanticoApp:
         start_iter, end_iter = self.query_editor_buffer.get_bounds();
         query_text = self.query_editor_buffer.get_text(start_iter, end_iter, True)
         return query_text
+    
+    def populate_all_data(self):
+        store = Gtk.ListStore(str, str,str)
+        
+        for row in self.graph:
+            store.append(row)
+            
+        self.status("Query answered")   
+        #create renderer
+        renderer = Gtk.CellRendererText()
+        
+        treeview = Gtk.TreeView(store)
+        for col in treeview.get_columns():
+            treeview.remove_column(col)
+          
+        treeview.append_column(Gtk.TreeViewColumn("Subject", renderer, text=0))
+        treeview.append_column(Gtk.TreeViewColumn("Predicate", renderer, text=1))
+        treeview.append_column(Gtk.TreeViewColumn("Object", renderer, text=2))  
+        
+        tab = OutputTab(self.notebook, "All Data")
+        tab.add_context(treeview)
+        self.notebook.add_output(tab)
+        
         
     def populate_output_treeview(self, result):
         #create list store
@@ -115,13 +135,16 @@ class SemanticoApp:
             store.append(rs)
         #create renderer
         renderer = Gtk.CellRendererText()
-        
-        self.treeview.set_model(store)
-        for col in self.treeview.get_columns():
-            self.treeview.remove_column(col)
+        treeview = Gtk.TreeView(store)
+        for col in treeview.get_columns():
+            treeview.remove_column(col)
           
         for index, name in enumerate(result.selectionF):
-            self.treeview.append_column(Gtk.TreeViewColumn(name, renderer, text=index))  
+            treeview.append_column(Gtk.TreeViewColumn(name, renderer, text=index))  
+        
+        tab = OutputTab(self.notebook)
+        tab.add_context(treeview)
+        self.notebook.add_output(tab)
         
         
     def get_test_output_treeview(self):
@@ -144,9 +167,6 @@ class SemanticoApp:
         
         return treeView
           
-    def print_out_results(self, result):
-        self.populate_output_treeview(result)
-        
     def on_timeout(self, user_data):
         """
         Update value on the progress bar
