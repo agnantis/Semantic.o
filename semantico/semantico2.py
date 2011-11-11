@@ -4,6 +4,7 @@ from gi.repository import Gtk, GObject
 import rdflib
 from rdflib.graph import Graph
 from rdflib import plugin
+from semantico.MyNotebookPage import MyNotebookPage
 
 plugin.register(
     'sparql', rdflib.query.Processor,
@@ -26,6 +27,7 @@ class SemanticoApp:
         self.outputscroll = self.builder.get_object('outputscroll')  
         self.treeview = self.builder.get_object('treeview1')
         self.progress = self.builder.get_object('progressbar')
+        self.tab_widget = self.builder.get_object('notebook')
         
         self.timeout_id = GObject.timeout_add(50, self.on_timeout, None)
         self.activity_mode = False
@@ -64,7 +66,13 @@ class SemanticoApp:
         self.query_btn.set_sensitive(True)
         
     def on_clear_btn_clicked(self, button):
-        self.clear()
+        pass
+    
+    def on_new_tab_btn_clicked(self, button):
+        myPage = MyNotebookPage(self.tab_widget)
+        position = self.tab_widget.append_page(myPage.get_page(), myPage.get_title())
+        myPage.set_position(position)
+        
         
     def on_query_btn_clicked(self, button):
         if not self.graph:
@@ -135,7 +143,7 @@ class SemanticoApp:
         treeView.append_column(column3)       
         
         return treeView
-        
+          
     def print_out_results(self, result):
         self.populate_output_treeview(result)
         
