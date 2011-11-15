@@ -17,6 +17,7 @@ class MyNoteBook(Gtk.Notebook):
         if len(self.tabs) == 2:
             return
         index = self.tabs.index(outputTab)
+        self.prev_page()
         self.remove_page(index)
         self.tabs.remove(outputTab)
 

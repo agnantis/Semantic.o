@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 
-from gi.repository import Gtk, GObject
+import os, sys
+from gi.repository import Gtk
 import rdflib
 from rdflib.graph import Graph
 from rdflib import plugin
 from semantico.MyNotebookPage import MyNoteBook, OutputTab
+from semantico.PluginMount import PluginProvider
 
 plugin.register(
     'sparql', rdflib.query.Processor,
@@ -33,17 +35,19 @@ class SemanticoApp:
         self.notebook.show_all()
         self.box.pack_start(self.notebook, True, True, 0)
                 
-        self.timeout_id = GObject.timeout_add(50, self.on_timeout, None)
-        self.activity_mode = False
-        
         window = self.builder.get_object('window')
         window.show_all()
         
         
     def destroy(self, window):
+        '''Close application'''
         Gtk.main_quit()
         
     def on_load_file_clicked(self, button):
+        '''
+        select a file with rdf data to read.
+        Currently supports only nt rdf-encoded files
+        '''
         dialog = Gtk.FileChooserDialog("Load RDF/XML file", button.get_toplevel(), Gtk.FileChooserAction.OPEN)
         dialog.add_button(Gtk.STOCK_CANCEL, 0)
         dialog.add_button(Gtk.STOCK_OPEN, 1)
@@ -51,7 +55,6 @@ class SemanticoApp:
         
         filefilter = Gtk.FileFilter()
         filefilter.set_name("RDF/nt files")
-        #filefilter.add_pattern("*.xml")
         filefilter.add_pattern("*.nt")
         dialog.set_filter(filefilter)
         
@@ -64,6 +67,11 @@ class SemanticoApp:
         dialog.destroy()
         
     def load_nt_file(self, filename):
+        '''
+        loads an nt file, which is located in 'filename'
+        Upon load, 'query' button becomes enabled
+        and data are sent to the output
+        '''
         self.graph = Graph()
         self.graph.parse(filename, format="nt")
         self.status("File loaded successfully")   
@@ -71,7 +79,7 @@ class SemanticoApp:
         self.populate_all_data()
         
     def on_clear_btn_clicked(self, button):
-        pass
+        self._load_plugins()
           
     def on_query_btn_clicked(self, button):
         if not self.graph:
@@ -118,12 +126,16 @@ class SemanticoApp:
         treeview.append_column(Gtk.TreeViewColumn("Predicate", renderer, text=1))
         treeview.append_column(Gtk.TreeViewColumn("Object", renderer, text=2))  
         
-        tab = OutputTab(self.notebook, "All Data", persistant=True)
-        tab.add_content(treeview)
-        self.notebook.add_output(tab)
-        #add a + tab
-        tab = OutputTab(self.notebook, no_title=True, closable=False)
-        self.notebook.add_output(tab, get_focus=False, set_last=True)
+        if not self._main_tab_exists():
+            self.all_data_tab = OutputTab(self.notebook, "All Data", persistant=True)
+            self.all_data_tab.add_content(treeview)
+            self.notebook.add_output(self.all_data_tab)
+            #add a + tab
+            tab = OutputTab(self.notebook, no_title=True, closable=False)
+            self.notebook.add_output(tab, get_focus=False, set_last=True)
+        else:
+            #populate existing tab
+            self.all_data_tab.change_content(treeview)
         
         
     def populate_output_treeview(self, result):
@@ -145,10 +157,14 @@ class SemanticoApp:
         for index, name in enumerate(result.selectionF):
             treeview.append_column(Gtk.TreeViewColumn(name, renderer, text=index))  
         
-        #tab = OutputTab(self.notebook)
-        #tab.add_content(treeview)
-        #self.notebook.add_output(tab)
-        self.notebook.change_current_content(treeview) 
+        #check if it is the 'All data' tab, 
+        #and create a new one if this is the case
+        if self._main_tab_exists() and self.all_data_tab == self.notebook.get_current_output():
+            tab = OutputTab(self.notebook)
+            tab.add_content(treeview)
+            self.notebook.add_output(tab)
+        else:
+            self.notebook.change_current_content(treeview) 
         
         
     def get_test_output_treeview(self):
@@ -171,22 +187,21 @@ class SemanticoApp:
         
         return treeView
           
-    def on_timeout(self, user_data):
-        """
-        Update value on the progress bar
-        """
-        if self.activity_mode:
-            self.progress.pulse()
-        #else:
-        #    new_value = self.progress.get_fraction() + 0.01
-        #    if new_value > 1:
-        #        new_value = 0
-        #    self.progress.set_fraction(new_value)
-
-        # As this is a timeout function, return True so that it
-        # continues to get called
-        return True
+    
+    def _load_plugins(self):
+        sys.path.append('/home/gs/workspace/python/semantic.o/plugins')
+        plugin_path = os.path.join(os.path.expanduser('~'), 'workspace/python/semantic.o/plugins')
+        contents = os.listdir(plugin_path)
+        for f in contents:
+            if os.path.isfile(os.path.join(plugin_path, f)) and f.endswith('.py'):
+                (name, _, _) = f.rpartition('.')
+                __import__(name)
+        print "Activate plugins"
+        for plugin in PluginProvider.plugins: #@UndefinedVariable 
+            plugin().do_activate()
         
+    def _main_tab_exists(self):
+        return hasattr(self, 'all_data_tab')
         
 def main():
     app = SemanticoApp()
