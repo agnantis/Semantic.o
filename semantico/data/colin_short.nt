@@ -1,6 +1,1 @@
-<http://semprog.com/people/colin> <http://xmlns.com/foaf/0.1/name> "Colin Evans".
-<http://semprog.com/people/colin> <http://xmlns.com/foaf/0.1/mbox> <mailto:colin@metaweb.com>.
-<http://semprog.com/people/colin> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://xmlns.com/foaf/0.1/Person>.
-
-<http://semprog.com/people/colin> <http://xmlns.com/foaf/0.1/knows> _:jamie .
-<http://semprog.com/people/colin> <http://xmlns.com/foaf/0.1/knows> <http://kiwitobes.com/toby.rdf#ts>.
+<http://semprog.com/people/kostasa> <http://xmlns.com/foaf/0.1/name> "Kostas Agnantis".

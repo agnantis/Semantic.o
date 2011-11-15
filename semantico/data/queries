@@ -6,3 +6,8 @@ where { ?o <http://xmlns.com/foaf/0.1/name> ?name.
 select ?subject ?predicate ?object
 where { ?subject ?predicate ?object.
 }
+
+Data sources:
+http://rdfweb.org/2003/02/28/cwm-crawler-output.rdf
+http://www.w3.org/2000/10/rdf-tests/rdfcore/ntriples/test.nt
+http://page.mi.fu-berlin.de/muehleis/ldow2011/ltpc-triples-dbpedia.nt

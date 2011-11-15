@@ -71,9 +71,11 @@ class OutputTab():
         '''
         self.parent = parent
         self.closable = closable
+        self.scroll = Gtk.ScrolledWindow()
         self.box = Gtk.HBox()
         self.label_box = Gtk.HBox(spacing=5)
-        self.box.show_all()
+        self.scroll.add_with_viewport(self.box)
+        self.scroll.show_all()
         #default title: Tab 1,2,3...
         if no_title:
             pass
@@ -102,7 +104,7 @@ class OutputTab():
         self.label_box.show_all()
         
     def get_page(self):
-        return self.box
+        return self.scroll
     
     def get_title(self):
         return self.label_box
