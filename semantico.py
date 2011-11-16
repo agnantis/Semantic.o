@@ -4,7 +4,7 @@ Created on Nov 11, 2011
 
 @author: konstantine
 '''
-from semantico.semantico2 import SemanticoApp
+from semantico.semanticoApp import SemanticoApp
 from gi.repository import Gtk
 
 def main():

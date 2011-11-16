@@ -7,6 +7,7 @@ from rdflib.graph import Graph
 from rdflib import plugin
 from semantico.MyNotebookPage import MyNoteBook, OutputTab
 from semantico.PluginMount import PluginProvider
+from rdflib.term import URIRef
 
 plugin.register(
     'sparql', rdflib.query.Processor,
@@ -19,6 +20,8 @@ MAIN_UI_FILE = "semantico/data/main_window3.glade"
 
 class SemanticoApp:
     def __init__(self):
+        #app flags
+        self.main_tab = False #the first time we read data it becomes true
         self.builder = Gtk.Builder()
         self.builder.add_from_file(MAIN_UI_FILE)
         self.builder.connect_signals(self)
@@ -128,8 +131,12 @@ class SemanticoApp:
         store = Gtk.ListStore(str, str,str)
         
         triples = 0;
-        for row in self.graph:
-            store.append(row)
+        for (s,p,o) in self.graph:
+            #urref = URIRef()
+            #print s.n3()
+            #print p.n3()
+            #print o.n3()
+            store.append((s.n3(),p.n3(),o.n3()))
             triples += 1
         plur = '' if triples == 1 else 's'
                 
@@ -141,9 +148,16 @@ class SemanticoApp:
         for col in treeview.get_columns():
             treeview.remove_column(col)
           
-        treeview.append_column(Gtk.TreeViewColumn("Subject", renderer, text=0))
-        treeview.append_column(Gtk.TreeViewColumn("Predicate", renderer, text=1))
-        treeview.append_column(Gtk.TreeViewColumn("Object", renderer, text=2))  
+        column = Gtk.TreeViewColumn("Subject", renderer, text=0)
+        column.set_resizable(True)
+        treeview.append_column(column)
+        column = Gtk.TreeViewColumn("Predicate", renderer, text=1)
+        column.set_resizable(True)
+        treeview.append_column(column)
+        column = Gtk.TreeViewColumn("Object", renderer, text=2)
+        column.set_resizable(True)
+        treeview.append_column(column)
+        treeview.set_headers_clickable(True)
         
         if not self._main_tab_exists():
             self.all_data_tab = OutputTab(self.notebook, "All Data", persistant=True)
@@ -186,27 +200,6 @@ class SemanticoApp:
             self.notebook.change_current_content(treeview) 
         
         
-    def get_test_output_treeview(self):
-        #create list store
-        store = Gtk.ListStore(*[str for i in range(3)])
-        #populate list store
-        treeiter = store.append(["element 1", "element 2", "element 3"])
-        treeiter = store.append(["element 2", "element 3", "element 1"])
-        treeiter = store.append(["element 3", "element 1", "element 2"])
-        #attach store to the treeView
-        treeView = Gtk.TreeView(store)
-        #create renderer
-        renderer = Gtk.CellRendererText()
-        column1 = Gtk.TreeViewColumn("Subject", renderer, text=0)
-        column3 = Gtk.TreeViewColumn("Predicate", renderer, text=1)
-        column2 = Gtk.TreeViewColumn("Object", renderer, text=2)
-        treeView.append_column(column1)       
-        treeView.append_column(column2)       
-        treeView.append_column(column3)       
-        
-        return treeView
-          
-    
     def _load_plugins(self):
         sys.path.append('/home/gs/workspace/python/semantic.o/plugins')
         plugin_path = os.path.join(os.path.expanduser('~'), 'workspace/python/semantic.o/plugins')
@@ -237,6 +230,7 @@ class URLDialog(Gtk.Dialog):
         self.url_field.set_width_chars(35)
         self.url_field.set_placeholder_text("Type a URL")
         self.url_field.set_margin_bottom(10)
+        self.url_field.set_text("http://www.w3.org/2000/10/rdf-tests/rdfcore/ntriples/test.nt")
         
         self.append_btn = Gtk.CheckButton("Append data")
         #box = Gtk.Box()
